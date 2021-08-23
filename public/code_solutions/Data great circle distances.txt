@@ -1,0 +1,22 @@
+http://www.gcmap.com/
+
+PTY -> BOG = 755 km
+PTY -> JFK = 3541 km
+PTY -> MIA = 1854 km
+PTY -> KIAH = 2850 km
+PTY -> ORD = 3740 km
+
+
+BOG -> JFK = 3980 km
+BOG -> MIA = 2425 km
+BOG -> KIAH = 3578 km
+BOG -> ORD =  4350 km
+
+JFK -> MIA = 1753 km
+JFK -> KIAH = 2280 km
+JFK -> ORD = 1191 km
+
+MIA -> KIAH = 1551
+MIA -> ORD = 1926
+
+KIAH -> ORD = 1489 km

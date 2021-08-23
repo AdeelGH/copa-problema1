@@ -1,0 +1,114 @@
+/* Creacion de Tablas para Prueba*/
+create table op_flt_plan (
+  flt_num int,
+  orig_cd varchar(10),
+  sch_dep_dtz datetime,
+  cost_index decimal,
+  fuel_price_usd_per_lb decimal,
+  overflt_cost_usd decimal
+);
+
+INSERT INTO op_flt_plan (flt_num, orig_cd, sch_dep_dtz, cost_index, fuel_price_usd_per_lb, overflt_cost_usd) values (1, 'GRU', '2014-07-14 00:00:00', 1.5, 3.00, 100.00);
+INSERT INTO op_flt_plan (flt_num, orig_cd, sch_dep_dtz, cost_index, fuel_price_usd_per_lb, overflt_cost_usd) values (2, 'GRU', '2014-07-14 00:00:00', 1.5, 3.00, 100.00);
+INSERT INTO op_flt_plan (flt_num, orig_cd, sch_dep_dtz, cost_index, fuel_price_usd_per_lb, overflt_cost_usd) values (3, 'GRU', '2020-02-27 00:00:00', 2.0, 5.00, 120.00);
+INSERT INTO op_flt_plan (flt_num, orig_cd, sch_dep_dtz, cost_index, fuel_price_usd_per_lb, overflt_cost_usd) values (4, 'GRU', '2021-03-30 00:00:00', 3.0, 6.00, 120.00);
+
+create table OP_FLT_PLAN_OVERFLT_CHARGE(
+  flt_num int,
+  orig_cd varchar(10),
+  sch_dep_dtz datetime,
+  seq_num int,
+  charge decimal,
+  charge_usd decimal
+);
+
+INSERT INTO OP_FLT_PLAN_OVERFLT_CHARGE (flt_num, orig_cd, sch_dep_dtz, seq_num, charge, charge_usd) values (1, 'GRU', '2014-07-14 00:00:00', 1, 2.00, 2.00);
+INSERT INTO OP_FLT_PLAN_OVERFLT_CHARGE (flt_num, orig_cd, sch_dep_dtz, seq_num, charge, charge_usd) values (2, 'GRU', '2014-07-14 00:00:00', 2, 2.00, 2.00);
+INSERT INTO OP_FLT_PLAN_OVERFLT_CHARGE (flt_num, orig_cd, sch_dep_dtz, seq_num, charge, charge_usd) values (3, 'GRU', '2020-02-27 00:00:00', 3, 3.00, 3.00);
+INSERT INTO OP_FLT_PLAN_OVERFLT_CHARGE (flt_num, orig_cd, sch_dep_dtz, seq_num, charge, charge_usd) values (4, 'GRU', '2021-03-30 00:00:00', 3, 4.00, 4.00);
+
+create table op_flt_plan_fuel_and_wgt(
+  flt_num int,
+  orig_cd varchar(10),
+  sch_dep_dtz datetime,
+  fuel_and_wgt_status_cd varchar (10),
+  burn_fuel_wgt_lb decimal
+);
+
+INSERT INTO op_flt_plan_fuel_and_wgt (flt_num, orig_cd, sch_dep_dtz, fuel_and_wgt_status_cd, burn_fuel_wgt_lb) values (1, 'GRU', '2014-07-14 00:00:00', 'EMP', 120.50);
+INSERT INTO op_flt_plan_fuel_and_wgt (flt_num, orig_cd, sch_dep_dtz, fuel_and_wgt_status_cd, burn_fuel_wgt_lb) values (2, 'GRU', '2014-07-14 00:00:00', 'EMP', 110.60);
+INSERT INTO op_flt_plan_fuel_and_wgt (flt_num, orig_cd, sch_dep_dtz, fuel_and_wgt_status_cd, burn_fuel_wgt_lb) values (3, 'GRU', '2020-02-27 00:00:00', 'EMP', 103.59);
+INSERT INTO op_flt_plan_fuel_and_wgt (flt_num, orig_cd, sch_dep_dtz, fuel_and_wgt_status_cd, burn_fuel_wgt_lb) values (4, 'GRU', '2021-03-30 00:00:00', 'EMP', 101.59);
+
+/* Opcion 1 de union y queries de resultados*/
+CREATE VIEW union_temp AS
+SELECT
+  t1.flt_num,
+  t1.orig_cd,
+  t1.sch_dep_dtz,
+  t1.cost_index,
+  t1.fuel_price_usd_per_lb,
+  t1.overflt_cost_usd,
+  t2.seq_num,
+  t2.charge,
+  t2.charge_usd,
+  t3.fuel_and_wgt_status_cd,
+  t3.burn_fuel_wgt_lb
+FROM
+  OP_FLT_PLAN AS t1
+  JOIN OP_FLT_PLAN_OVERFLT_CHARGE AS t2 ON (
+    t1.flt_num = t2.flt_num
+    AND t1.orig_cd = t2.orig_cd
+    AND t1.sch_dep_dtz = t2.sch_dep_dtz
+  )
+  JOIN OP_FLT_PLAN_FUEL_AND_WGT AS t3 ON (
+    t1.flt_num = t3.flt_num
+    AND t1.orig_cd = t3.orig_cd
+    AND t1.sch_dep_dtz = t3.sch_dep_dtz
+  )
+
+SELECT
+  flt_num,
+  sch_dep_dtz,
+  overflt_cost_usd, 
+  charge_usd,
+  fuel_price_usd_per_lb,
+  burn_fuel_wgt_lb,
+  fuel_price_usd_per_lb*burn_fuel_wgt_lb AS fuel_usd,
+  fuel_price_usd_per_lb*burn_fuel_wgt_lb + overflt_cost_usd AS fuel_overflight_costs
+FROM union_temp
+where orig_cd = "GRU"
+AND (SCH_DEP_DTZ = "2014-07-14 00:00:00"
+OR SCH_DEP_DTZ = "2020-02-27 00:00:00")
+GROUP BY flt_num, orig_cd, SCH_DEP_DTZ;
+
+/* Opcion 2 de union y queries de resultados*/
+SELECT
+  t1.flt_num,
+  t1.sch_dep_dtz,
+  t1.overflt_cost_usd,
+  t1.fuel_price_usd_per_lb,
+  t2.charge_usd,
+  t3.burn_fuel_wgt_lb,
+  t1.fuel_price_usd_per_lb*t3.burn_fuel_wgt_lb AS fuel_usd,
+  t1.fuel_price_usd_per_lb*t3.burn_fuel_wgt_lb + t1.overflt_cost_usd AS fuel_overflight_costs
+FROM
+  OP_FLT_PLAN AS t1
+  JOIN OP_FLT_PLAN_OVERFLT_CHARGE AS t2 ON (
+    t1.flt_num = t2.flt_num
+    AND t1.orig_cd = t2.orig_cd
+    AND t1.sch_dep_dtz = t2.sch_dep_dtz
+  )
+  JOIN OP_FLT_PLAN_FUEL_AND_WGT AS t3 ON (
+    t1.flt_num = t3.flt_num
+    AND t1.orig_cd = t3.orig_cd
+    AND t1.sch_dep_dtz = t3.sch_dep_dtz
+  )
+WHERE t1.orig_cd = "GRU"
+AND (t1.SCH_DEP_DTZ = "2014-07-14 00:00:00"
+OR t1.SCH_DEP_DTZ = "2020-02-27 00:00:00")
+GROUP BY t1.flt_num, t1.orig_cd, t1.SCH_DEP_DTZ;
+
+
+http://sqlfiddle.com/
+
