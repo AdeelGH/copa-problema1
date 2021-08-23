@@ -1,6 +1,6 @@
-# Domain Knowledge Test – Operational Efficiency
+# Domain Knowledge Test
 
-Aunque la carpeta se llama problema1, incluye la solución de todos los problemas.
+Aunque el proyecto se llama problema1, incluye la solución de todos los problemas.
 
 ## Problema 1
 
